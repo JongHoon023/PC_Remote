@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
@@ -32,6 +33,9 @@ public class PC_WiFi {
 	static ServerSocket ss;
 	static Socket so;
 	static Robot robot;
+	static boolean bt_stat = false;
+	
+	static Thread t;
 
 	public static void main(String[] args) {
 		
@@ -76,77 +80,95 @@ public class PC_WiFi {
 		p4.add(log);
 		
 		// 연결 대기 버튼 이벤트
-		bt.addActionListener(new ActionListener() {
+		bt.addActionListener((e) -> {
 			
-			@Override
-			public void actionPerformed(ActionEvent ee) {
+			if (bt_stat == false) {
+				bt.setEnabled(false); // 연결 중일 때 버튼 클릭 막기
 				
-				try {
-					ss = new ServerSocket(Integer.parseInt(port.getText().toString())); // 서버 소켓을 입력받은 포트로 열어줌
-					
-					while (true) {
-						so = ss.accept(); // 핸드폰과 연결될 때까지 대기 상태
-					
-						BufferedReader r = new BufferedReader(new InputStreamReader(so.getInputStream()));
-						String command = r.readLine(); // 핸드폰에서 명령을 보내면 command 에 받아서 대입
+				t = new Thread(() -> {
+					try {
+						ss = new ServerSocket(Integer.parseInt(port.getText().toString())); // 서버 소켓을 입력받은 포트로 열어줌
 						
-						// Robot 클래스를 이용해 원격 조종 가능하게 해줌
-						try {
-							robot = new Robot();
-						} catch (AWTException e) {
-							log.add("원격 제어 불가능");
-						}
+						log.add("연결 대기중...");
 						
-						if (command.equals("OK")) { // 연결이 됐으면
-							log.add("연결 되었습니다");
-						}
-						else if (command.equals("END")) { // 핸드폰과의 연결이 끊어졌으면
-							so.close(); // 소켓을 닫음
-							r.close(); // BufferBufferedReader 클래스 닫음
+						while (true) {
+							so = ss.accept(); // 핸드폰과 연결될 때까지 대기 상태
+						
+							BufferedReader r = new BufferedReader(new InputStreamReader(so.getInputStream()));
+							String command = r.readLine(); // 핸드폰에서 명령을 보내면 command 에 받아서 대입
+							
+							// Robot 클래스를 이용해 원격 조종 가능하게 해줌
+							try {
+								robot = new Robot();
+							} catch (AWTException err) {
+								log.add("원격 제어 불가능");
+							}
+							
+							if (command.equals("OK")) { // 연결이 됐으면
+								log.add("연결 되었습니다");
+								bt.setEnabled(true); // 버튼 제어 가능하게 만듦
+								bt.setText("연결 강제 종료");
+							}
+							else if (command.equals("END")) { // 핸드폰과의 연결이 끊어졌으면
+								so.close(); // 소켓을 닫음
+								r.close(); // BufferBufferedReader 클래스 닫음
 
-							System.exit(0); // 강제 종료 시킴
-							break;
+								System.exit(0); // 강제 종료 시킴
+								break;
+							}
+							// 명령에 따른 이벤트 발생
+							else if (command.equals("ESC")) {
+								robot.keyPress(KeyEvent.VK_ESCAPE);
+								robot.keyRelease(KeyEvent.VK_ESCAPE);
+							}
+							else if (command.equals("F5")) {
+								robot.keyPress(KeyEvent.VK_F5);
+								robot.keyRelease(KeyEvent.VK_F5);
+							}
+							
+							else if (command.equals("Left")) {
+								robot.keyPress(KeyEvent.VK_LEFT);
+								robot.keyRelease(KeyEvent.VK_LEFT);
+							}
+							else if (command.equals("Right")) {
+								robot.keyPress(KeyEvent.VK_RIGHT);
+								robot.keyRelease(KeyEvent.VK_RIGHT);
+							}
+							else if (command.equals("Shift + F5")) {
+								robot.keyPress(KeyEvent.VK_SHIFT);
+								robot.keyPress(KeyEvent.VK_F5);
+								robot.keyRelease(KeyEvent.VK_SHIFT);
+								robot.keyRelease(KeyEvent.VK_F5);
+							}
+							else if (command.equals("Up")) {
+								robot.keyPress(KeyEvent.VK_UP);
+								robot.keyRelease(KeyEvent.VK_UP);
+							}
+							else if (command.equals("Down")) {
+								robot.keyPress(KeyEvent.VK_DOWN);
+								robot.keyRelease(KeyEvent.VK_DOWN);
+							}
+							log.add("명령어 : " + command); // 명령어가 정상적으로 실행됐으면 로그를 추가해줌
 						}
-						// 명령에 따른 이벤트 발생
-						else if (command.equals("ESC")) {
-							robot.keyPress(KeyEvent.VK_ESCAPE);
-							robot.keyRelease(KeyEvent.VK_ESCAPE);
-						}
-						else if (command.equals("F5")) {
-							robot.keyPress(KeyEvent.VK_F5);
-							robot.keyRelease(KeyEvent.VK_F5);
-						}
-						
-						else if (command.equals("Left")) {
-							robot.keyPress(KeyEvent.VK_LEFT);
-							robot.keyRelease(KeyEvent.VK_LEFT);
-						}
-						else if (command.equals("Right")) {
-							robot.keyPress(KeyEvent.VK_RIGHT);
-							robot.keyRelease(KeyEvent.VK_RIGHT);
-						}
-						else if (command.equals("Shift + F5")) {
-							robot.keyPress(KeyEvent.VK_SHIFT);
-							robot.keyPress(KeyEvent.VK_F5);
-							robot.keyRelease(KeyEvent.VK_SHIFT);
-							robot.keyRelease(KeyEvent.VK_F5);
-						}
-						else if (command.equals("Up")) {
-							robot.keyPress(KeyEvent.VK_UP);
-							robot.keyRelease(KeyEvent.VK_UP);
-						}
-						else if (command.equals("Down")) {
-							robot.keyPress(KeyEvent.VK_DOWN);
-							robot.keyRelease(KeyEvent.VK_DOWN);
-						}
-						log.add("명령어 : " + command); // 명령어가 정상적으로 실행됐으면 로그를 추가해줌
+						bt.setText("연결 강제 종료");
 					}
-				} 
-				catch (Exception e) {
-					log.add(e.getMessage());
-				}
-				
+					catch (Exception err) {
+						log.add(err.getMessage());
+					}
+				});
+				t.start();
 			}
+			else { // 연결 강제 종료
+				try {
+					ss.close();
+					so.close();
+				}
+				catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			
 		});
 		
 		jf.add(p);
@@ -156,60 +178,24 @@ public class PC_WiFi {
 		
 		jf.setVisible(true);
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		jf.addWindowListener(new WindowListener() {
-			
-			@Override
-			public void windowOpened(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void windowIconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void windowDeiconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void windowDeactivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+		
+		// 윈도우 종료 시
+		jf.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				try {
 					ss.close();
 					so.close();
-				} catch (IOException e1) {
+				} 
+				catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				finally {
 					System.exit(0);
 				}
-				
 			}
 			
-			@Override
-			public void windowClosed(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void windowActivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
 		});
 	}
-
 }

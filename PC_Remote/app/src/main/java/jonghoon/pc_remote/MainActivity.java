@@ -7,14 +7,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText ip;
+    EditText ip1, ip2, ip3, ip4;
     TextView port;
     Button go;
 
-    String s;
+    String ip;
 
     private int port_num;
 
@@ -29,8 +30,13 @@ public class MainActivity extends AppCompatActivity {
             port_num = (int)((Math.random()*9999)+2000);
         }
 
-        ip = (EditText)findViewById(R.id.ip);
+        ip1 = (EditText)findViewById(R.id.ip1);
+        ip2 = (EditText)findViewById(R.id.ip2);
+        ip3 = (EditText)findViewById(R.id.ip3);
+        ip4 = (EditText)findViewById(R.id.ip4);
+
         port = (TextView)findViewById(R.id.port);
+
         go = (Button)findViewById(R.id.go);
 
         port.setText(String.valueOf(port_num));
@@ -38,10 +44,19 @@ public class MainActivity extends AppCompatActivity {
         go.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, Main2Activity.class);
-                i.putExtra("port_num", port_num);
-                i.putExtra("ip_num", ip.getText().toString());
-                startActivity(i);
+
+                if (ip1.getText().toString().equals("") || ip2.getText().toString().equals("") || ip3.getText().toString().equals("") || ip4.getText().toString().equals(""))
+                    Toast.makeText(getApplicationContext(), "ip를 전부 입력해주세요", Toast.LENGTH_SHORT).show();
+                else if (Integer.parseInt(ip1.getText().toString()) > 255 || Integer.parseInt(ip2.getText().toString()) > 255 || Integer.parseInt(ip3.getText().toString()) > 255 || Integer.parseInt(ip4.getText().toString()) > 255)
+                    Toast.makeText(getApplicationContext(), "ip는 255를 넘을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                else {
+                    ip = ip1.getText().toString() + "." + ip2.getText().toString() + "." + ip3.getText().toString() + "." + ip4.getText().toString();
+
+                    Intent i = new Intent(MainActivity.this, Main2Activity.class);
+                    i.putExtra("port_num", port_num);
+                    i.putExtra("ip_num", ip);
+                    startActivity(i);
+                }
             }
         });
     }
