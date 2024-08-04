@@ -1,7 +1,7 @@
 # PC_Remote
 ## (주의! 더 이상 유지보수하지 않는 프로젝트!!!)
 
-### Palm Coading 이란?
+### PC Remote 란?
 - 모바일에서 PC 의 PPT 를 Remote 할 수 있도록 만든 Remote App 입니다.
 
 ### 여담
